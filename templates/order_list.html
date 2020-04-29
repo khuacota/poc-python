@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+{% block content %}
+<table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Order id</th>
+        <th scope="col">Date</th>
+        <th scope="col">Total</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <th scope="row">{{loop.index}}</th>
+        <td>{{order.get_id()}}</td>
+        <td>{{order.get_date()}}</td>
+        <td>{{order.get_total()}}</td>
+        <td><a href="{{ url_for('get_order_by_id',id = order.get_id())}}" style="color: black;">
+            <i class="fa fa-search-plus"></i>
+        </a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

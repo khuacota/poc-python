@@ -1,0 +1,93 @@
+{% macro show_stars(id, rate) %}
+  {% for i in [1, 2, 3, 4, 5] %}
+    {% if i <= rate %}
+      <i class="fa fa-star" onclick="rateItem('{{ id }}', {{i}})"></i>
+    {% else %}
+      <i class="fa fa-star-o" onclick="rateItem('{{ id }}', {{i}})"></i>
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+
+{% extends 'index.html' %}
+{% block content %}
+<table class="table" id="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Product</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Subtotal</th>
+        <th scope="col">Rate</th>
+        <th scope="col">Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <th scope="row">{{loop.index}}</th>
+        <td>{{item.get_product()}}</td>
+        <td>{{item.get_quantity()}}</td>
+        <td>{{item.get_subtotal()}}</td>
+        <td>
+          <div id="rate">
+          {% if item.is_rated() %}
+            {{ show_stars(item.get_id(), item.get_score()) }}
+          {% else %}
+            <span class="badge badge-danger" id="{{item.get_id()}}" onclick="rate('{{item.get_id()}}')"> Rate product!</span>
+            <div id="stars-{{item.get_id()}}" style="display: none;">
+            {{ show_stars(item.get_id(), item.get_score()) }}
+            </div>
+          {% endif %}
+          </div>
+        </td>
+        <td>
+          <div id="note">
+          {% if item.has_note() %}
+            <div> {{ item.get_note() }} </div>
+          {% else %}
+            <textarea class="form-control" rows="1" name={{item.get_id()}}></textarea>
+            <i class="fa fa-check-circle" onclick="setNote('{{item.get_id()}}')"></i>
+          {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+      var orderId = '{{order_id}}';
+      function rateItem(itemId, rate) {
+        $.ajax({
+          type: "POST",
+          url: "/orders/"+ orderId+"/items/"+itemId+"/rate",
+          data: {rate: rate},
+          success: function(data) {
+            $( "#table" ).load(window.location.href + " #table" );
+            console.log('successfully posted data! response body: ' + data);
+            }
+          });
+      }
+
+      function setNote(itemId) {
+        var note = $("[name='"+ itemId +"']").val();
+        $.ajax({
+          type: "POST",
+          url: "/orders/"+ orderId+"/items/"+itemId+"/note",
+          data: {note: note},
+          success: function(data) {
+            $( "#table" ).load(window.location.href + " #table" );
+            console.log('successfully posted data! response body: ' + data);
+            }
+          });
+      }
+
+      function rate(itemId) {
+        $("#"+itemId).css({"display": "none"});
+        $("#stars-"+itemId).css({"display": "block"});
+      }
+    </script>
+{% endblock %}
